@@ -1,0 +1,49 @@
+# 시놀로지(또는 다른 장비)에서 FreeRADIUS 만 단독 실행할 때 사용하는 compose 파일
+#
+#   [Palo Alto] --RADIUS(UDP 1812)--> [이 컨테이너] --HTTPS--> [privacyIDEA 서버]
+#
+# 준비물 (docs/synology-freeradius.md 참고)
+#   .env                          ← .env.example 복사 후 수정
+#   secrets/radius_client_secret  ← privacyIDEA 서버의 secrets/radius_client_secret 과 같은 값
+#   ca.crt                        ← privacyIDEA 서버의 certs/ca.crt
+name: pi-radius
+
+services:
+  radius:
+    build: .
+    image: privacyidea-radius:3.2
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      PI_VALIDATE_URL: ${PI_VALIDATE_URL:?PI_VALIDATE_URL 을 .env 에 설정하세요}
+      PI_REALM: ${PI_REALM:-corp}
+      PALOALTO_IPS: ${PALOALTO_IPS:?PALOALTO_IPS 를 .env 에 설정하세요}
+      PI_CLIENT_ATTRIBUTE: ${PI_CLIENT_ATTRIBUTE-PaloAlto-Client-Source-IP}
+      PI_GROUP_ATTRIBUTE: ${PI_GROUP_ATTRIBUTE:-}
+      PI_GROUP_REGEX: ${PI_GROUP_REGEX:-}
+      RADIUS_REQUIRE_MESSAGE_AUTHENTICATOR: ${RADIUS_REQUIRE_MESSAGE_AUTHENTICATOR:-auto}
+    secrets: [radius_client_secret]
+    volumes:
+      - ./ca.crt:/etc/pi-ca/ca.crt:ro
+    # privacyIDEA 호스트 이름이 DNS 에 없으면 IP 로 고정 (인증서 이름 검증용)
+    extra_hosts:
+      - "${PI_HOSTNAME:-pi.example.local}:${PI_SERVER_IP:-127.0.0.1}"
+    tmpfs:
+      - /tmp:uid=101,gid=101,mode=0700
+    ports:
+      - "${RADIUS_BIND:-0.0.0.0}:${RADIUS_AUTH_PORT:-1812}:1812/udp"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    mem_limit: 256m
+
+secrets:
+  radius_client_secret:
+    file: ./secrets/radius_client_secret

@@ -1,0 +1,49 @@
+# privacyIDEA 전용 가상 서버 (Palo Alto → FreeRADIUS → privacyIDEA /validate/check)
+server privacyidea {
+	listen {
+		type = auth
+		ipaddr = *
+		port = 1812
+		limit {
+			max_connections = 16
+			lifetime = 0
+			idle_timeout = 30
+		}
+	}
+
+	authorize {
+		# 사용자 이름이 없거나, 비밀번호도 State(챌린지 응답)도 없는 요청은 즉시 거부
+		if (!&User-Name || (!&User-Password && !&State)) {
+			reject
+		}
+		# 비정상적으로 긴 사용자 이름/제어문자 거부 (인젝션·로그 오염 방지)
+		if (&User-Name =~ /[\x00-\x1f]/ || &User-Name =~ /.{129,}/) {
+			reject
+		}
+		# NAS-IP-Address 가 없을 때 클라이언트 IP 대체값으로 사용
+		update request {
+			&Packet-Src-IP-Address := "%{Packet-Src-IP-Address}"
+		}
+		privacyidea
+		if (ok || updated) {
+			update control {
+				&Auth-Type := privacyidea
+			}
+		}
+	}
+
+	authenticate {
+		Auth-Type privacyidea {
+			privacyidea
+		}
+	}
+
+	post-auth {
+		Post-Auth-Type REJECT {
+			# privacyIDEA 내부 오류/사용자 존재 여부가 VPN 클라이언트에 노출되지 않도록 통일
+			update reply {
+				&Reply-Message := "Authentication failed"
+			}
+		}
+	}
+}

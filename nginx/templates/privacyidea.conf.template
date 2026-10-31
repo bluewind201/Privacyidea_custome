@@ -1,0 +1,92 @@
+# 이 파일은 컨테이너 시작 시 envsubst 로 /etc/nginx/conf.d/ 에 생성된다.
+
+# HTTP → HTTPS 리다이렉트
+server {
+    listen 8080 default_server;
+    server_name _;
+
+    location = /nginx-health {
+        access_log off;
+        allow 127.0.0.1;
+        deny all;
+        return 200 "ok\n";
+    }
+    location / {
+        return 301 https://$host:${PI_HTTPS_PORT}$request_uri;
+    }
+}
+
+server {
+    listen 8443 ssl default_server;
+    http2 on;
+    server_name _;
+
+    ssl_certificate     /etc/nginx/certs/server.crt;
+    ssl_certificate_key /etc/nginx/certs/server.key;
+
+    # Mozilla "intermediate" 프로필 (TLS 1.2/1.3)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_prefer_server_ciphers off;
+    ssl_ecdh_curve X25519:prime256v1:secp384r1;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:pi_tls:10m;
+    ssl_session_tickets off;
+
+    # ---- 보안 헤더 ----
+    add_header Strict-Transport-Security "max-age=${NGINX_HSTS_MAX_AGE}" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+    add_header Cross-Origin-Opener-Policy "same-origin" always;
+    add_header Cross-Origin-Resource-Policy "same-origin" always;
+    # script-src 의 해시는 WebUI index.html 의 onload="this.media='all'" (스타일시트 지연 로딩) 하나만 허용
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-hashes' 'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" always;
+
+    limit_conn pi_conn 100;
+
+    proxy_http_version 1.1;
+    proxy_set_header Connection        "";
+    proxy_set_header Host              $host;
+    # X-Forwarded-For 는 덮어쓴다(append 금지) → 클라이언트가 IP 를 위조할 수 없음
+    proxy_set_header X-Forwarded-For   $remote_addr;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-Host  $host;
+    proxy_hide_header X-Powered-By;
+    proxy_hide_header Server;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout    60s;
+
+    # 헬스체크/진단 엔드포인트는 외부에 노출하지 않음
+    location /healthz/ {
+        allow 127.0.0.1;
+        deny all;
+        proxy_pass http://privacyidea;
+    }
+
+    # RADIUS(FreeRADIUS) 가 호출하는 인증 API
+    location /validate/ {
+        include /etc/nginx/conf.d/allow-validate.inc;
+        if ($validate_bad_method) {
+            return 405;
+        }
+        limit_req zone=pi_validate burst=200 nodelay;
+        proxy_pass http://privacyidea;
+    }
+
+    # WebUI 로그인 (JWT 발급)
+    location = /auth {
+        include /etc/nginx/conf.d/allow-web.inc;
+        limit_req zone=pi_auth burst=10 nodelay;
+        proxy_pass http://privacyidea;
+    }
+
+    # WebUI 및 관리 API
+    location / {
+        include /etc/nginx/conf.d/allow-web.inc;
+        limit_req zone=pi_general burst=100 nodelay;
+        proxy_pass http://privacyidea;
+    }
+}

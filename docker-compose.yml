@@ -1,0 +1,257 @@
+# 보안 강화 privacyIDEA 스택 (Palo Alto 2FA / FreeRADIUS 연동)
+#
+#   [Palo Alto] --RADIUS--> [radius] --HTTPS--> [nginx] --HTTP(내부망)--> [privacyidea] --> [db]
+#
+# 처음 설치: ./scripts/setup.sh   (.env, 시크릿, 인증서 생성 → 기동 → 초기 정책 적용)
+# 모든 설정값은 .env 에서 관리한다. (.env.example 참고)
+
+name: privacyidea
+
+x-hardening: &hardening
+  restart: unless-stopped
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+services:
+  db:
+    <<: *hardening
+    image: ${PI_DB_IMAGE:-mariadb:11.4}
+    user: "999:999"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-name-resolve
+      - --local-infile=0
+      - --max-connections=200
+    environment:
+      MARIADB_DATABASE: privacyidea
+      MARIADB_USER: privacyidea
+      MARIADB_PASSWORD_FILE: /run/secrets/db_password
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MARIADB_ROOT_HOST: localhost
+      MARIADB_AUTO_UPGRADE: "1"
+      TZ: ${TZ:-Asia/Seoul}
+    secrets: [db_password, db_root_password]
+    volumes:
+      - db-data:/var/lib/mysql
+    tmpfs:
+      - /run/mysqld:uid=999,gid=999,mode=0755
+      - /tmp:uid=999,gid=999,mode=1777
+    networks: [pi_backend]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    mem_limit: ${PI_DB_MEM_LIMIT:-1g}
+    pids_limit: 256
+
+  privacyidea:
+    <<: *hardening
+    build:
+      context: ./privacyidea
+      args:
+        PI_VERSION: ${PI_VERSION:-3.14}
+    image: privacyidea-hardened:${PI_VERSION:-3.14}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      # --- DB (비밀번호는 시크릿 파일) ---
+      PI_DB_DRIVER: mysql+pymysql
+      PI_DB_HOST: db
+      PI_DB_PORT: "3306"
+      PI_DB_NAME: privacyidea
+      PI_DB_USER: privacyidea
+      PI_DB_PASSWORD_FILE: /run/secrets/db_password
+      PI_DB_EXTRA_PARAMS: charset=utf8mb4
+      # --- 앱 비밀값 (enckey/audit 키는 /run/secrets 에서 자동 인식) ---
+      PI_PEPPER_FILE: /run/secrets/pi_pepper
+      SECRET_KEY_FILE: /run/secrets/pi_secret_key
+      # --- 일반 ---
+      PI_BASE_URL: https://${PI_HOSTNAME}:${PI_HTTPS_PORT:-8443}
+      PI_NODE_NAME: ${PI_NODE_NAME:-pi-docker}
+      PI_NODE_UUID: ${PI_NODE_UUID:-}
+      PI_LOGLEVEL: ${PI_LOGLEVEL:-INFO}
+      PI_SUPERUSER_REALM: ${PI_SUPERUSER_REALM:-}
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
+      GUNICORN_FORWARDED_ALLOW_IPS: ${PI_NGINX_BACKEND_IP:-172.31.251.10}
+      # 조건부 접근 엔진이 절대 차단하지 않을 주소 (프록시, RADIUS, 방화벽)
+      PI_NEVER_BLOCK: "${PI_NGINX_BACKEND_IP:-172.31.251.10} ${PI_RADIUS_SOURCES:-172.31.250.20} ${PALOALTO_IPS:-} ${PI_NEVER_BLOCK_EXTRA:-}"
+      # --- pi-bootstrap.py 가 사용하는 값 ---
+      PI_NGINX_BACKEND_IP: ${PI_NGINX_BACKEND_IP:-172.31.251.10}
+      PI_RADIUS_SOURCES: ${PI_RADIUS_SOURCES:-172.31.250.20}
+      PI_ADMIN_USER: ${PI_ADMIN_USER:-admin}
+      PI_ADMIN_EMAIL: ${PI_ADMIN_EMAIL:-}
+      PI_REALM: ${PI_REALM:-corp}
+      PI_USERSTORE: ${PI_USERSTORE:-internal}
+      PI_TOKEN_ISSUER: ${PI_TOKEN_ISSUER:-PaloAlto-VPN}
+      PI_CHALLENGE_TEXT: ${PI_CHALLENGE_TEXT:-}
+      PI_USER_SELFSERVICE: ${PI_USER_SELFSERVICE:-true}
+      PI_ROLLOUT_PASSTHRU: ${PI_ROLLOUT_PASSTHRU:-false}
+      PI_MAX_TOKEN_PER_USER: ${PI_MAX_TOKEN_PER_USER:-1}
+      PI_TOKEN_MAX_FAIL: ${PI_TOKEN_MAX_FAIL:-10}
+      PI_FAILCOUNTER_CLEAR_MINUTES: ${PI_FAILCOUNTER_CLEAR_MINUTES:-10}
+      PI_WEBUI_LOGOUT_SECONDS: ${PI_WEBUI_LOGOUT_SECONDS:-300}
+      PI_CA_IP_ENFORCE: ${PI_CA_IP_ENFORCE:-false}
+      PI_SMTP_IDENTIFIER: ${PI_SMTP_IDENTIFIER:-}
+      PI_GROUP_ATTRIBUTE: ${PI_GROUP_ATTRIBUTE:-}
+      LDAP_PRESET: ${LDAP_PRESET:-ad}
+      LDAP_URI: ${LDAP_URI:-}
+      LDAP_BASE_DN: ${LDAP_BASE_DN:-}
+      LDAP_BIND_DN: ${LDAP_BIND_DN:-}
+      LDAP_LOGIN_ATTR: ${LDAP_LOGIN_ATTR:-}
+      LDAP_SEARCH_FILTER: ${LDAP_SEARCH_FILTER:-}
+      LDAP_UIDTYPE: ${LDAP_UIDTYPE:-}
+      LDAP_START_TLS: ${LDAP_START_TLS:-false}
+      LDAP_TLS_VERIFY: ${LDAP_TLS_VERIFY:-true}
+      LDAP_CA_FILE: ${LDAP_CA_FILE:-}
+    secrets:
+      - db_password
+      - pi_pepper
+      - pi_secret_key
+      - enckey
+      - audit_key_private
+      - audit_key_public
+      - pi_admin_password
+      - ldap_bind_password
+    volumes:
+      # LDAP 서버 CA 등 추가 인증서 (선택)
+      - ./certs/ldap:/etc/privacyidea/ldap-ca:ro
+    tmpfs:
+      - /tmp:uid=10001,gid=10001,mode=1700
+    networks:
+      pi_backend:
+        ipv4_address: ${PI_APP_BACKEND_IP:-172.31.251.20}
+      # LDAP/AD, SMTP 등 외부로 나가는 연결 전용 (외부에서 들어오는 포트는 없음)
+      pi_egress: {}
+    mem_limit: ${PI_APP_MEM_LIMIT:-1g}
+    pids_limit: 512
+
+  nginx:
+    <<: *hardening
+    image: ${PI_NGINX_IMAGE:-nginx:1.28-alpine}
+    user: "101:101"
+    depends_on:
+      privacyidea:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      PI_HTTPS_PORT: ${PI_HTTPS_PORT:-8443}
+      NGINX_HSTS_MAX_AGE: ${NGINX_HSTS_MAX_AGE:-31536000}
+      PI_WEB_ALLOWED_NETS: ${PI_WEB_ALLOWED_NETS:-10.0.0.0/8 172.16.0.0/12 192.168.0.0/16}
+      PI_VALIDATE_ALLOWED_NETS: ${PI_RADIUS_SOURCES:-172.31.250.20}
+      NGINX_ENVSUBST_FILTER: "^(PI_|NGINX_)"
+      NGINX_ENTRYPOINT_QUIET_LOGS: "1"
+    ports:
+      - "${PI_HTTPS_BIND:-0.0.0.0}:${PI_HTTPS_PORT:-8443}:8443"
+      - "${PI_HTTPS_BIND:-0.0.0.0}:${PI_HTTP_PORT:-8080}:8080"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./nginx/entrypoint.d/15-pi-allowlists.sh:/docker-entrypoint.d/15-pi-allowlists.sh:ro
+      - ./certs/server.crt:/etc/nginx/certs/server.crt:ro
+      - ./certs/server.key:/etc/nginx/certs/server.key:ro
+    tmpfs:
+      - /tmp:uid=101,gid=101,mode=0700
+      - /etc/nginx/conf.d:uid=101,gid=101,mode=0755
+      - /var/cache/nginx:uid=101,gid=101,mode=0700
+    networks:
+      pi_backend:
+        ipv4_address: ${PI_NGINX_BACKEND_IP:-172.31.251.10}
+      pi_frontend:
+        aliases:
+          - ${PI_HOSTNAME}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/nginx-health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    mem_limit: 256m
+    pids_limit: 128
+
+  # FreeRADIUS (Palo Alto 가 RADIUS 로 접속). 같은 호스트에서 돌릴 때만 사용:
+  #   .env 에 COMPOSE_PROFILES=radius
+  # 시놀로지에 따로 설치할 때는 radius/docker-compose.yml 사용
+  radius:
+    <<: *hardening
+    profiles: [radius]
+    build:
+      context: ./radius
+    image: privacyidea-radius:3.2
+    depends_on:
+      nginx:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      PI_VALIDATE_URL: https://${PI_HOSTNAME}:8443/validate/check
+      PI_REALM: ${PI_REALM:-corp}
+      PALOALTO_IPS: ${PALOALTO_IPS:?PALOALTO_IPS 를 .env 에 설정하세요}
+      PI_CLIENT_ATTRIBUTE: ${PI_CLIENT_ATTRIBUTE-PaloAlto-Client-Source-IP}
+      PI_GROUP_ATTRIBUTE: ${PI_GROUP_ATTRIBUTE:-}
+      PI_GROUP_REGEX: ${PI_GROUP_REGEX:-}
+      RADIUS_REQUIRE_MESSAGE_AUTHENTICATOR: ${RADIUS_REQUIRE_MESSAGE_AUTHENTICATOR:-auto}
+      RADIUS_ALLOW_LOCALHOST_TEST: ${RADIUS_ALLOW_LOCALHOST_TEST:-false}
+    secrets: [radius_client_secret]
+    volumes:
+      - ./certs/ca.crt:/etc/pi-ca/ca.crt:ro
+    tmpfs:
+      - /tmp:uid=101,gid=101,mode=0700
+    ports:
+      - "${RADIUS_BIND:-0.0.0.0}:${RADIUS_AUTH_PORT:-1812}:1812/udp"
+    networks:
+      pi_frontend:
+        ipv4_address: ${PI_RADIUS_INTERNAL_IP:-172.31.250.20}
+    mem_limit: 256m
+    pids_limit: 128
+
+networks:
+  # DB/앱 전용 내부망: 외부(인터넷) 라우팅 없음
+  pi_backend:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${PI_BACKEND_SUBNET:-172.31.251.0/24}
+  pi_frontend:
+    ipam:
+      config:
+        - subnet: ${PI_FRONTEND_SUBNET:-172.31.250.0/24}
+  pi_egress:
+    ipam:
+      config:
+        - subnet: ${PI_EGRESS_SUBNET:-172.31.252.0/24}
+
+volumes:
+  db-data:
+
+secrets:
+  db_password:
+    file: ./secrets/db_password
+  db_root_password:
+    file: ./secrets/db_root_password
+  pi_pepper:
+    file: ./secrets/pi_pepper
+  pi_secret_key:
+    file: ./secrets/pi_secret_key
+  enckey:
+    file: ./secrets/enckey
+  audit_key_private:
+    file: ./secrets/audit_key_private
+  audit_key_public:
+    file: ./secrets/audit_key_public
+  pi_admin_password:
+    file: ./secrets/pi_admin_password
+  ldap_bind_password:
+    file: ./secrets/ldap_bind_password
+  radius_client_secret:
+    file: ./secrets/radius_client_secret
