@@ -1,0 +1,4 @@
+.env
+ca.crt
+secrets/*
+!secrets/.gitkeep

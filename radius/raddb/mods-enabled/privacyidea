@@ -1,0 +1,8 @@
+# privacyIDEA rlm_perl 플러그인
+# 설정 파일(rlm_perl.ini)은 컨테이너 시작 시 환경변수로부터 tmpfs 에 생성된다.
+perl privacyidea {
+	filename = /usr/share/privacyidea/freeradius/privacyidea_radius.pm
+	config {
+		configfile = /tmp/raddb/rlm_perl.ini
+	}
+}

@@ -1,0 +1,12 @@
+# 비밀값/인증서/환경설정은 절대 커밋하지 않는다
+.env
+secrets/*
+!secrets/.gitkeep
+certs/*
+!certs/.gitkeep
+!certs/ldap/
+certs/ldap/*
+!certs/ldap/.gitkeep
+backups/
+*.pem
+*.key
