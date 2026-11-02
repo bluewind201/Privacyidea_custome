@@ -20,7 +20,7 @@ on:
     inputs:
       theme:
         description: "WebUI 디자인 (profile | top | rail | glass | none)"
-        default: "profile"
+        default: "none"
       platforms:
         description: "CPU 종류 (ARM 시놀로지는 linux/arm64 추가)"
         default: "linux/amd64"
@@ -69,7 +69,7 @@ jobs:
           push: true
           build-args: |
             PI_VERSION=${{ env.PI_VERSION }}
-            PI_WEBUI_THEME=${{ inputs.theme || 'profile' }}
+            PI_WEBUI_THEME=${{ inputs.theme || 'none' }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/privacyidea-hardened:${{ env.PI_VERSION }}
             ${{ secrets.DOCKERHUB_USERNAME }}/privacyidea-hardened:latest

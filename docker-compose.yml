@@ -61,7 +61,7 @@ services:
       context: ./privacyidea
       args:
         PI_VERSION: ${PI_VERSION:-3.14}
-        PI_WEBUI_THEME: ${PI_WEBUI_THEME:-profile}
+        PI_WEBUI_THEME: ${PI_WEBUI_THEME:-none}
     # PI_IMAGE_PREFIX 가 있으면 Docker Hub 의 미리 빌드된 이미지를 받아 쓴다 (docker compose pull)
     image: ${PI_IMAGE_PREFIX:-}privacyidea-hardened:${PI_VERSION:-3.14}
     depends_on:
