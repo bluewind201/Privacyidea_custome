@@ -35,6 +35,13 @@ RUN echo "privacyidea==${PI_VERSION} --hash=sha256:${PI_WHEEL_SHA256}" > pi-whee
  && { /opt/privacyidea/bin/pip uninstall -y pip setuptools wheel || true; } \
  && find /opt/privacyidea -name '__pycache__' -prune -exec rm -rf {} +
 
+# 4) WebUI 한국어 번들(browser/ko) 생성 - webui-ko/build_ko_locale.py 참고
+COPY webui-ko/ ./webui-ko/
+RUN set -e; \
+    browser="$(echo /opt/privacyidea/lib/python3*/site-packages/privacyidea/static/dist/privacyidea-webui/browser)"; \
+    [ -d "$browser/en" ] || { echo "WebUI 번들 경로를 찾을 수 없습니다: $browser" >&2; exit 1; }; \
+    python3 webui-ko/build_ko_locale.py "$browser" webui-ko/ko.json webui-ko/angular-locale-ko.js
+
 
 FROM ${PYTHON_IMAGE}
 
