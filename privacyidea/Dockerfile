@@ -35,12 +35,20 @@ RUN echo "privacyidea==${PI_VERSION} --hash=sha256:${PI_WHEEL_SHA256}" > pi-whee
  && { /opt/privacyidea/bin/pip uninstall -y pip setuptools wheel || true; } \
  && find /opt/privacyidea -name '__pycache__' -prune -exec rm -rf {} +
 
-# 4) WebUI 한국어 번들(browser/ko) 생성 + 유리 질감 테마 - webui-ko/build_ko_locale.py 참고
-#    원본 디자인을 쓰려면: --build-arg PI_WEBUI_THEME=none
+# 4) WebUI 한국어 번들(browser/ko) 생성 + 디자인 테마 - webui-ko/build_ko_locale.py 참고
+#    PI_WEBUI_THEME: profile | top | rail | glass | none (원본 디자인)
 ARG PI_WEBUI_THEME=glass
 COPY webui-ko/ ./webui-ko/
 RUN set -e; \
-    theme=""; [ "$PI_WEBUI_THEME" = "none" ] || theme="webui-ko/pi-theme.css"; \
+    t=webui-ko/themes; \
+    case "$PI_WEBUI_THEME" in \
+      none)    theme="" ;; \
+      glass)   theme="$t/base.css $t/sidebar.css $t/glass.css" ;; \
+      profile) theme="$t/base.css $t/sidebar.css $t/light-base.css $t/profile.css" ;; \
+      rail)    theme="$t/base.css $t/sidebar.css $t/light-base.css $t/rail.css" ;; \
+      top)     theme="$t/base.css $t/light-base.css $t/top.css" ;; \
+      *) echo "알 수 없는 PI_WEBUI_THEME: $PI_WEBUI_THEME (profile|top|rail|glass|none)" >&2; exit 1 ;; \
+    esac; \
     browser="$(echo /opt/privacyidea/lib/python3*/site-packages/privacyidea/static/dist/privacyidea-webui/browser)"; \
     [ -d "$browser/en" ] || { echo "WebUI 번들 경로를 찾을 수 없습니다: $browser" >&2; exit 1; }; \
     python3 webui-ko/build_ko_locale.py "$browser" webui-ko/ko.json webui-ko/angular-locale-ko.js $theme

@@ -14,9 +14,9 @@ privacyIDEA 는 Angular 로 빌드된 WebUI 를 언어별 폴더(browser/en, bro
 
 privacyIDEA 버전이 바뀌어 구조가 달라지면 조용히 깨지지 않도록 빌드를 실패시킨다.
 
-  5. (선택) 테마 CSS 를 모든 언어 번들에 연결한다.
+  5. (선택) 테마 CSS 를 모든 언어 번들에 연결한다. 여러 파일을 주면 순서대로 합친다.
 
-사용법: build_ko_locale.py <browser 디렉터리> <ko.json> <angular-locale-ko.js> [theme.css]
+사용법: build_ko_locale.py <browser 디렉터리> <ko.json> <angular-locale-ko.js> [theme.css ...]
 """
 import json
 import os
@@ -135,7 +135,7 @@ def add_language_entry(path):
 
 def main():
     browser, ko_json, ng_locale = sys.argv[1:4]
-    theme_css = sys.argv[4] if len(sys.argv) > 4 else None
+    theme_css = sys.argv[4:]
     en, ko = os.path.join(browser, "en"), os.path.join(browser, "ko")
     with open(ko_json, encoding="utf-8") as f:
         ko_map = json.load(f)
@@ -216,16 +216,22 @@ def main():
 THEME_FILE = "pi-theme.css"
 
 
-def install_theme(browser, theme_css):
-    """모든 언어 번들에 테마 CSS 를 복사하고 index.html 의 원본 스타일 뒤에 연결한다.
+def install_theme(browser, css_files):
+    """테마 CSS 파일들을 하나로 합쳐 모든 언어 번들에 복사하고 index.html 의 원본 스타일 뒤에 연결한다.
     같은 출처(self)의 파일이므로 Nginx CSP(style-src 'self')를 바꿀 필요가 없다."""
+    css = []
+    for path in css_files:
+        with open(path, encoding="utf-8") as f:
+            css.append(f.read())
+    css = "\n".join(css)
     count = 0
     for loc in sorted(os.listdir(browser)):
         d = os.path.join(browser, loc)
         idx = os.path.join(d, "index.html")
         if not os.path.isfile(idx):
             continue
-        shutil.copyfile(theme_css, os.path.join(d, THEME_FILE))
+        with open(os.path.join(d, THEME_FILE), "w", encoding="utf-8") as f:
+            f.write(css)
         with open(idx, encoding="utf-8") as f:
             html = f.read()
         link = f'<link rel="stylesheet" href="{THEME_FILE}">'
@@ -236,7 +242,7 @@ def install_theme(browser, theme_css):
             with open(idx, "w", encoding="utf-8") as f:
                 f.write(html)
         count += 1
-    print(f"[theme] 테마 적용: {count} 개 번들")
+    print(f"[theme] 테마 적용 ({len(css_files)} 개 CSS): {count} 개 번들")
 
 
 if __name__ == "__main__":

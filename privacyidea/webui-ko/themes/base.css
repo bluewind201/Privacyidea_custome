@@ -1,0 +1,162 @@
+/*
+ * privacyIDEA WebUI 테마 공통 규칙 (모든 시안이 이 파일을 먼저 불러온다)
+ *  - 원본은 수정하지 않고 원본이 쓰는 CSS 변수와 일부 클래스만 덮어쓴다.
+ *  - 색/간격은 아래 --t-* 변수로만 바꾸고, 시안 파일(glass/light/top/rail.css)이 값을 정한다.
+ *  - 간격은 8pt 단위 (topmate.io 처럼 넉넉한 여백 + 둥근 카드)
+ */
+html {
+  --t-font: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", Roboto, sans-serif;
+  --t-gap: 24px;                 /* 카드 사이/본문 바깥 여백 */
+  --t-radius: 20px;              /* 카드 모서리 */
+  --t-pill: 12px;                /* 메뉴 항목 모서리 */
+  --t-btn-r: 999px;              /* 버튼 모서리 */
+  --t-blur: none;
+  --border-radius: var(--t-radius) !important;
+  --side-glow: none !important;
+}
+
+html, body {
+  background: var(--t-bg) !important;
+  background-attachment: fixed !important;
+  color: var(--mat-sys-on-surface);
+  font-family: var(--t-font) !important;
+}
+/* 한글 글꼴 (아이콘 글꼴은 제외) */
+body *:not(.mat-icon):not(.material-icons):not([class*="material-symbols"]):not([class*="mat-ligature-font"]) {
+  font-family: var(--t-font) !important;
+}
+
+/* ---------- 카드/패널 ---------- */
+.primary-toolbar,
+.secondary-toolbar,
+.widget-frame,
+.dashboard-page .widget-frame,
+[class$="-table-layout"],
+[class*="-table-layout "],
+.mat-mdc-card,
+.mat-expansion-panel,
+.mat-mdc-dialog-surface,
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel,
+.mat-datepicker-content {
+  background: var(--t-panel) !important;
+  -webkit-backdrop-filter: var(--t-blur);
+  backdrop-filter: var(--t-blur);
+  border: 1px solid var(--t-line) !important;
+  box-shadow: var(--t-shadow) !important;
+  border-radius: var(--t-radius) !important;
+}
+.mat-mdc-dialog-surface,
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel { background: var(--t-popup) !important; }
+
+/* 본문 배경은 페이지 배경을 그대로 보이게 */
+.dashboard-page { background: transparent !important; border-radius: 0 !important; box-shadow: none !important; }
+
+/* 본문 여백 */
+.dashboard-field-scroll { padding: var(--t-gap) !important; }
+[class$="-table-layout"], [class*="-table-layout "] { padding: var(--t-gap) !important; }
+.widget-frame { overflow: hidden; }
+
+/* ---------- 메뉴 항목 ---------- */
+.nav-item {
+  border-radius: var(--t-pill) !important;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.nav-item:hover { background: var(--t-hover) !important; }
+.nav-item.active {
+  background: var(--t-active-bg) !important;
+  border: 1px solid var(--t-active-line) !important;
+  box-shadow: var(--t-active-shadow) !important;
+  clip-path: none !important;
+  border-radius: var(--t-pill) !important;
+}
+.nav-item.active .nav-button,
+.nav-item.active .nav-button * { color: var(--t-active-fg) !important; }
+.utils-group {
+  background: var(--t-soft) !important;
+  border: 1px solid var(--t-line) !important;
+  border-radius: var(--t-pill) !important;
+  clip-path: none !important;
+}
+
+/* ---------- 표 ---------- */
+th, td, .mat-mdc-header-cell, .mat-mdc-cell { background: transparent !important; }
+.mat-mdc-header-row, thead tr { background: var(--t-thead) !important; }
+.mat-mdc-row:hover, tbody tr:hover { background: var(--t-hover) !important; }
+.mat-mdc-table { background: transparent !important; }
+
+/* ---------- 버튼 ---------- */
+.action-button-primary,
+.login-btn,
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-raised-button.mat-primary {
+  background: var(--t-btn) !important;
+  color: var(--t-btn-fg) !important;
+  border: 1px solid var(--t-btn-line) !important;
+  box-shadow: var(--t-btn-shadow) !important;
+  border-radius: var(--t-btn-r) !important;
+}
+.action-button-primary *, .login-btn * { color: var(--t-btn-fg) !important; opacity: 1 !important; }
+.action-button-primary:hover, .login-btn:hover { filter: brightness(1.08); transform: none !important; }
+.action-button-secondary {
+  background: var(--t-soft) !important;
+  border: 1px solid var(--t-line) !important;
+  border-radius: var(--t-btn-r) !important;
+}
+.mat-button-toggle-checked { background: var(--t-btn) !important; color: var(--t-btn-fg) !important; }
+
+/* ---------- 입력창 ---------- */
+.mdc-text-field--outlined:not(.mdc-text-field--disabled) { background: var(--t-input); border-radius: 12px; }
+.mdc-text-field--filled:not(.mdc-text-field--disabled) { background: var(--t-input) !important; }
+
+/* ---------- 로그인: 가운데 카드 ---------- */
+.login-scroll {
+  width: min(420px, calc(100vw - 32px)) !important;
+  max-width: 420px !important;
+  height: auto !important;
+  margin: 56px auto !important;
+  padding: 40px 40px 32px !important;
+  box-sizing: border-box !important;
+  background: var(--t-card) !important;
+  -webkit-backdrop-filter: var(--t-blur);
+  backdrop-filter: var(--t-blur);
+  border: 1px solid var(--t-line) !important;
+  border-radius: 28px !important;
+  box-shadow: var(--t-card-shadow) !important;
+}
+.login-scroll .logo { width: 96px !important; height: 96px !important; }
+.login-scroll .logo-text { width: 220px !important; height: auto !important; margin-bottom: 8px; }
+.login-scroll .login-form, .login-scroll .passkey-form { width: 100% !important; }
+.passkey-form .mdc-fab, .passkey-form button {
+  background: var(--t-soft) !important;
+  border: 1px solid var(--t-line) !important;
+  box-shadow: none !important;
+  color: var(--mat-sys-on-surface) !important;
+}
+
+/* 하단 흐림 효과(원본의 회색 그라데이션) 제거 */
+.dashboard-bottom-fade { display: none !important; }
+
+/* 스크롤바 */
+* { scrollbar-color: var(--t-scroll) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--t-scroll); border-radius: 10px; }
+
+/* 좁은 화면: 상단 메뉴를 떠 있는 바로 */
+.primary-toolbar { margin: 12px 12px 0 !important; width: auto !important; padding: 6px 10px !important; }
+.secondary-toolbar { margin: 8px 12px 0 !important; }
+
+/* 표 화면(토큰/사용자/로그 등)의 큰 카드도 바깥 여백을 둔다 */
+.admin-content [class$="-table-layout"] {
+  margin: var(--t-gap) !important;
+  height: calc(100% - 2 * var(--t-gap)) !important;
+  width: calc(100% - 2 * var(--t-gap)) !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* 로그인 화면 바깥 배경도 페이지 배경 그대로 */
+.login-container { background: transparent !important; }

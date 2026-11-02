@@ -1,0 +1,69 @@
+/*
+ * 시안 B "Top" - 사이드바 없이 가운데 정렬된 한 줄 레이아웃 (topmate 페이지 폭/간격 참고)
+ *  - 흰 상단 바 + 알약 메뉴, 본문은 최대 1280px 가운데 정렬
+ *  - 보라 포인트 색 (code.xr)
+ * 구성: base.css + light-base.css + top.css  (sidebar.css 없음)
+ */
+html.light, html.dark, html.system, html {
+  --t-bg: #fafafb;
+  --t-panel: #ffffff;
+  --t-popup: #ffffff;
+  --t-card: #ffffff;
+  --t-line: #ebebef;
+  --t-shadow: 0 1px 3px rgba(20, 20, 40, 0.05);
+  --t-card-shadow: 0 16px 48px rgba(60, 50, 140, 0.10);
+  --t-pill: 999px;
+  --t-active-bg: #6d5efc;
+  --t-active-fg: #ffffff;
+  --t-active-shadow: 0 6px 16px rgba(109, 94, 252, 0.28);
+  --t-btn: #6d5efc;
+  --t-btn-fg: #ffffff;
+  --t-btn-line: #6d5efc;
+  --t-btn-shadow: 0 6px 16px rgba(109, 94, 252, 0.25);
+  --t-hover: rgba(109, 94, 252, 0.08);
+
+  --mat-sys-primary-dark: #4b3fd6 !important;
+  --mat-sys-primary-base: #6d5efc !important;
+  --mat-sys-primary-base-active: #5a4bf0 !important;
+  --mat-sys-primary-base-hover: #7f72ff !important;
+  --mat-sys-primary-light: #8b7fff !important;
+  --mat-sys-primary-light-active: #6d5efc !important;
+  --mat-sys-primary-light-hover: #a59cff !important;
+  --mat-sys-primary: #6d5efc !important;
+  --mat-sys-on-primary: #ffffff !important;
+  --mat-sys-primary-container: #efedff !important;
+  --mat-sys-on-primary-container: #2e2585 !important;
+  --mat-sys-secondary: #6d5efc !important;
+  --mat-sys-tertiary: #3b82f6 !important;
+  --inline-hint-bg: #efedff !important;
+  --inline-warning-bg: #fdecec !important;
+}
+/* 상단 바: 화면 폭 전체, 내용은 가운데 */
+.primary-toolbar {
+  margin: 0 !important; width: 100% !important;
+  border-radius: 0 !important; border-width: 0 0 1px 0 !important;
+  padding: 8px max(24px, calc((100vw - 1280px) / 2)) !important;
+  height: 72px !important; box-sizing: border-box !important;
+}
+.toolbar-logo-text { display: none !important; }
+.brand-link { display: flex !important; align-items: center !important; text-decoration: none !important; }
+.brand-link::after { content: "privacyIDEA"; margin-left: 10px; font-weight: 800; font-size: 18px; color: #18181b; }
+.main-nav { gap: 4px !important; justify-content: center !important; }
+.primary-toolbar .nav-item, .primary-toolbar .nav-item.active { border: 0 !important; height: 40px !important; min-height: 0 !important; align-self: center !important; }
+.nav-item .nav-button { padding: 0 14px !important; gap: 8px !important; font-size: 14px !important; font-weight: 500; }
+.primary-toolbar .nav-item .nav-button .mat-icon { display: none !important; }
+.utils-group { border-radius: 999px !important; padding: 0 8px !important; }
+/* 하위 메뉴: 본문 폭에 맞춘 알약 탭 줄 */
+.secondary-toolbar {
+  width: auto !important; max-width: 1280px !important; box-sizing: border-box !important;
+  margin: 24px auto 0 !important; padding: 0 16px !important;
+  border-radius: 999px !important; height: 60px !important; min-height: 60px !important;
+}
+.admin-content > *:not(router-outlet) {
+  width: 100%; max-width: 1328px; margin: 0 auto; box-sizing: border-box;
+}
+.secondary-toolbar .nav-item, .secondary-toolbar a, .secondary-toolbar button { border-radius: 999px !important; }
+.primary-toolbar .main-nav .nav-item.active {
+  height: 40px !important; max-height: 40px !important;
+  padding: 0 !important; margin: auto 0 !important;
+}

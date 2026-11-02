@@ -1,0 +1,117 @@
+/*
+ * 왼쪽 사이드바 레이아웃 (넓은 화면, 1000px 이상)
+ *  - 사이드바(메뉴) | 상단 헤더(하위 메뉴) + 본문 의 2단 구조
+ *  - 크기는 시안 파일에서 --sb-* 변수로 바꾼다.
+ */
+html {
+  --sb-w: 260px;          /* 사이드바 폭 */
+  --sb-item-w: 194px;     /* 메뉴 항목 폭 */
+  --sb-item-h: 48px;      /* 메뉴 항목 높이 */
+  --sb-r: 28px;           /* 사이드바 모서리 */
+  --sb-pad: 24px 16px 16px;
+  --sb-bg: var(--t-panel);
+  --sb-line: var(--t-line);
+  --hd-r: 20px;           /* 상단 헤더 모서리 */
+}
+@media (min-width: 1000px) {
+  div.admin-layout {
+    display: grid !important;
+    grid-template-columns: var(--sb-w) minmax(0, 1fr) !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    height: 100vh !important;
+  }
+  div.admin-layout > app-navigation { display: contents !important; }
+
+  div.admin-layout .primary-toolbar {
+    grid-column: 1; grid-row: 1 / span 2;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: auto !important;
+    margin: var(--t-gap) 0 var(--t-gap) var(--t-gap) !important;
+    padding: var(--sb-pad) !important;
+    border-radius: var(--sb-r) !important;
+    background: var(--sb-bg) !important;
+    border: 1px solid var(--sb-line) !important;
+    position: relative !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    white-space: normal !important;
+  }
+  div.admin-layout .toolbar-brand {
+    padding: 4px 8px 16px !important;
+    border-bottom: 1px solid var(--sb-line) !important;
+    margin-bottom: 8px !important;
+    justify-content: flex-start !important;
+  }
+  div.admin-layout .toolbar-logo { width: 40px !important; height: 40px !important; }
+  div.admin-layout .toolbar-logo-text { display: none !important; }
+  div.admin-layout .toolbar-brand .brand-link { display: flex !important; align-items: center !important; text-decoration: none !important; }
+  div.admin-layout .toolbar-brand .brand-link::after {
+    content: "privacyIDEA";
+    margin-left: 12px;
+    font-weight: 800; font-size: 19px; letter-spacing: 0.02em;
+    color: var(--t-brand);
+  }
+  /* privacyIDEA 는 메뉴 폭(clientWidth)을 재서 넘치는 항목을 "더 보기"로 숨긴다.
+     세로 메뉴에서도 모든 항목이 보이도록 메뉴 상자 폭은 넉넉히 두고 항목 폭을 고정한다. */
+  div.admin-layout .main-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    width: 3000px !important;
+    min-width: 3000px !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  div.admin-layout .main-nav::before {
+    content: "MENU"; display: block;
+    padding: 8px 12px 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.16em;
+    color: var(--mat-sys-on-surface-variant);
+  }
+  div.admin-layout .nav-item {
+    width: var(--sb-item-w) !important; height: var(--sb-item-h) !important; flex: 0 0 auto !important;
+    padding: 0 !important; box-sizing: border-box !important;
+    border: 1px solid transparent !important;
+  }
+  div.admin-layout .nav-item .nav-button {
+    width: 100% !important; height: 100% !important;
+    justify-content: flex-start !important;
+    gap: 14px !important; padding: 0 16px !important;
+    font-size: 15px !important;
+  }
+  div.admin-layout .toolbar-actions {
+    margin-top: auto !important;
+    padding-top: 16px !important;
+    border-top: 1px solid var(--sb-line) !important;
+    width: 100% !important;
+  }
+  div.admin-layout .utils-group {
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    height: auto !important;
+    padding: 8px !important;
+  }
+
+  div.admin-layout .secondary-toolbar {
+    grid-column: 2; grid-row: 1;
+    width: auto !important;
+    margin: var(--t-gap) var(--t-gap) 0 var(--t-gap) !important;
+    border-radius: var(--hd-r) !important;
+  }
+  div.admin-layout .admin-content {
+    grid-column: 2; grid-row: 2;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: auto !important;
+    padding: 0 8px 0 0;
+  }
+}

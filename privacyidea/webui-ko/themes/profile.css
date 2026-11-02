@@ -1,0 +1,63 @@
+/*
+ * 시안 A "Profile" - topmate.io 프로필 페이지 스타일
+ *  - 따뜻한 미색 배경 + 흰 카드 + 얇은 테두리, 검정 알약 버튼
+ *  - 사이드바 맨 위를 프로필 카드처럼 (큰 원형 로고 + 이름 + 설명)
+ * 구성: base.css + sidebar.css + light-base.css + profile.css
+ */
+html.light, html.dark, html.system, html {
+  --t-bg: #f6f5f1;
+  --t-panel: #ffffff;
+  --t-popup: #ffffff;
+  --t-card: #ffffff;
+  --t-line: #e7e5df;
+  --t-shadow: 0 1px 2px rgba(20, 20, 30, 0.04);
+  --t-card-shadow: 0 12px 40px rgba(20, 20, 30, 0.08);
+  --t-active-bg: #18181b;
+  --t-active-fg: #ffffff;
+  --t-active-shadow: 0 4px 14px rgba(24, 24, 27, 0.18);
+  --t-btn: #18181b;
+  --t-btn-fg: #ffffff;
+  --t-btn-line: #18181b;
+  --t-btn-shadow: none;
+  --t-brand: #18181b;
+  --sb-pad: 28px 16px 16px;
+
+  --mat-sys-primary-dark: #18181b !important;
+  --mat-sys-primary-base: #18181b !important;
+  --mat-sys-primary-base-active: #000000 !important;
+  --mat-sys-primary-base-hover: #3f3f46 !important;
+  --mat-sys-primary-light: #3f3f46 !important;
+  --mat-sys-primary-light-active: #27272a !important;
+  --mat-sys-primary-light-hover: #52525b !important;
+  --mat-sys-primary: #18181b !important;
+  --mat-sys-on-primary: #ffffff !important;
+  --mat-sys-primary-container: #f1f0ec !important;
+  --mat-sys-on-primary-container: #18181b !important;
+  --mat-sys-secondary: #e2541c !important;
+  --mat-sys-tertiary: #e2541c !important;
+  --inline-hint-bg: #fff4ec !important;
+  --inline-warning-bg: #fdecec !important;
+}
+@media (min-width: 1000px) {
+  /* 프로필 카드: 로고를 크게, 가운데 정렬 */
+  div.admin-layout .toolbar-brand {
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 8px 8px 20px !important;
+  }
+  div.admin-layout .toolbar-brand .brand-link { flex-direction: column !important; gap: 12px; }
+  div.admin-layout .toolbar-logo {
+    width: 72px !important; height: 72px !important;
+    padding: 6px; border-radius: 50%;
+    background: #f6f5f1; border: 1px solid var(--t-line);
+  }
+  div.admin-layout .toolbar-brand .brand-link::after {
+    content: "privacyIDEA";
+    margin: 0; font-size: 20px;
+  }
+  div.admin-layout .toolbar-brand::after {
+    content: "● 2단계 인증 서버";
+    margin-top: 12px; padding: 4px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; color: #15803d; background: #ecfdf3;
+  }
+}
