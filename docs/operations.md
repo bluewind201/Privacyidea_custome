@@ -105,7 +105,7 @@ CA 가 같으므로 FreeRADIUS 와 PC 쪽은 바꿀 필요가 없습니다.
 
 | 증상 | 원인 / 조치 |
 |---|---|
-| 브라우저 403 | 접속 PC 대역이 `PI_WEB_ALLOWED_NETS` 에 없음 |
+| 브라우저 403 | 접속 PC 대역이 `PI_WEB_ALLOWED_NETS` 에 없음. Nginx 로그의 client 가 `172.31.250.1` 이면 시놀로지 Docker 의 출발지 변환 → `docs/synology-freeradius.md` 마지막 절 |
 | 브라우저 429 | 로그인 시도 과다 (1분에 10회) → 잠시 후 재시도 |
 | RADIUS 403 (`request failed: 403`) | RADIUS 서버 IP 가 `PI_RADIUS_SOURCES` 에 없음 |
 | `db` 로그에 `/run/secrets/db_root_password: Permission denied` | 시놀로지 공유 폴더 ACL 때문에 컨테이너 UID 가 시크릿을 못 읽음 → `sudo ./scripts/setup.sh secrets` (ACL 제거 + 권한 재설정 + 읽기 확인) 후 `sudo docker compose up -d` |

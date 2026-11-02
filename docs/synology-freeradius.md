@@ -156,3 +156,18 @@ docker compose build --pull && docker compose up -d
 일부 DSM 버전에서 `Your kernel does not support ... pids limit` / `memory swap` 경고가 나올 수 있습니다.
 기능에는 영향이 없습니다. 만약 컨테이너가 시작되지 않는 오류가 나면 `docker-compose.yml` 의
 해당 서비스에서 `pids_limit` 줄을 지우세요.
+
+## 참고: 시놀로지에서 접속 IP 가 `172.31.250.1` 로 보이는 경우
+
+DSM 의 Docker 는 포트 포워딩 시 출발지 IP 를 브리지 게이트웨이(`172.31.250.1`)로 바꿔 넘기는 경우가 있습니다.
+Nginx 로그의 `client:` 가 실제 PC IP 가 아니라 `172.31.250.1` 이면 이 경우입니다.
+
+- 증상: WebUI `403 Forbidden` (`access forbidden by rule, client: 172.31.250.1`),
+  RADIUS 는 `unknown client 172.31.250.1` 로 요청 무시
+- 조치
+  1. `.env` → `PI_WEB_ALLOWED_NETS=172.31.250.1/32 <사내 대역>` 후 `sudo docker compose up -d nginx`
+  2. RADIUS 를 쓰면 `.env` → `PALOALTO_IPS=<방화벽 IP> 172.31.250.1` 후 `sudo docker compose up -d radius`
+  3. 컨테이너가 출발지를 구분하지 못하므로 **DSM 방화벽**으로 대신 제한:
+     TCP 8443 → 관리자/사용자 PC 대역만, UDP 1812 → Palo Alto IP 만 (위 *DSM 방화벽* 표)
+- 사용자 공인 IP 는 Palo Alto 가 `PaloAlto-Client-Source-IP` 속성으로 보내므로 잠금·감사 로그에는 영향이 없습니다.
+  `172.31.250.1` 은 Nginx/RADIUS 와 같이 IP 차단 예외에 넣어 두세요 (`PI_NEVER_BLOCK_EXTRA=172.31.250.1`).
