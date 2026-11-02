@@ -162,7 +162,20 @@ configure_env() {
   if [ -z "$(env_get PI_NODE_UUID)" ]; then
     env_set PI_NODE_UUID "$(cat /proc/sys/kernel/random/uuid 2>/dev/null || openssl rand -hex 16 | sed -E 's/(.{8})(.{4})(.{4})(.{4})(.{12})/\1-\2-\3-\4-\5/')"
   fi
+  configure_pids_limit
   c_ok ".env 저장 완료"
+}
+
+# 시놀로지 등 커널에 pids cgroup 이 없으면 Docker 가 pids_limit 를 버리면서
+# 컨테이너마다 경고를 낸다 → 0(미적용)으로 두어 경고를 없앤다
+configure_pids_limit() {
+  local k
+  if [ "$(docker info --format '{{.PidsLimit}}' 2>/dev/null)" = "false" ]; then
+    for k in PI_DB_PIDS_LIMIT PI_APP_PIDS_LIMIT PI_NGINX_PIDS_LIMIT RADIUS_PIDS_LIMIT; do
+      env_set "$k" 0
+    done
+    c_info "이 커널은 PIDs 제한을 지원하지 않아 pids_limit 를 끕니다 (경고 제거)"
+  fi
 }
 
 # ---------------------------------------------------------------------------

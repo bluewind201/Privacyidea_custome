@@ -53,7 +53,7 @@ services:
       retries: 10
       start_period: 30s
     mem_limit: ${PI_DB_MEM_LIMIT:-1g}
-    pids_limit: 256
+    pids_limit: ${PI_DB_PIDS_LIMIT:-256}
 
   privacyidea:
     <<: *hardening
@@ -138,7 +138,7 @@ services:
       # LDAP/AD, SMTP 등 외부로 나가는 연결 전용 (외부에서 들어오는 포트는 없음)
       pi_egress: {}
     mem_limit: ${PI_APP_MEM_LIMIT:-1g}
-    pids_limit: 512
+    pids_limit: ${PI_APP_PIDS_LIMIT:-512}
 
   nginx:
     <<: *hardening
@@ -180,7 +180,7 @@ services:
       timeout: 5s
       retries: 3
     mem_limit: 256m
-    pids_limit: 128
+    pids_limit: ${PI_NGINX_PIDS_LIMIT:-128}
 
   # FreeRADIUS (Palo Alto 가 RADIUS 로 접속). 같은 호스트에서 돌릴 때만 사용:
   #   .env 에 COMPOSE_PROFILES=radius
@@ -215,7 +215,7 @@ services:
       pi_frontend:
         ipv4_address: ${PI_RADIUS_INTERNAL_IP:-172.31.250.20}
     mem_limit: 256m
-    pids_limit: 128
+    pids_limit: ${RADIUS_PIDS_LIMIT:-128}
 
 networks:
   # DB/앱 전용 내부망: 외부(인터넷) 라우팅 없음
