@@ -76,6 +76,16 @@ server {
         proxy_pass http://privacyidea;
     }
 
+    # WebUI 로그인 화면의 패스키(WebAuthn) 챌린지 요청 - WebUI 대역에서 허용
+    location = /validate/initialize {
+        include /etc/nginx/conf.d/allow-web.inc;
+        if ($validate_bad_method) {
+            return 405;
+        }
+        limit_req zone=pi_auth burst=10 nodelay;
+        proxy_pass http://privacyidea;
+    }
+
     # WebUI 로그인 (JWT 발급)
     location = /auth {
         include /etc/nginx/conf.d/allow-web.inc;
