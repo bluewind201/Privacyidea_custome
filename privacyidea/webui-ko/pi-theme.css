@@ -1,0 +1,325 @@
+/*
+ * privacyIDEA WebUI "Glass" 테마
+ *  - 보라/파랑 그라데이션 배경 + 반투명 유리 질감 패널 (code.xr "Glassy Sidebar" 스타일 참고)
+ *  - privacyIDEA 원본은 수정하지 않고, 원본이 쓰는 CSS 변수와 일부 클래스만 덮어쓴다.
+ *  - 이미지 빌드 시 build_ko_locale.py 가 모든 언어 번들의 index.html 에 연결한다.
+ *  - 끄려면: docker compose build --build-arg PI_WEBUI_THEME=none privacyidea
+ */
+
+/* ---------- 색상/표면 변수 (밝은/어두운/시스템 테마 모두 같은 유리 테마로) ---------- */
+html.light, html.dark, html.system, html {
+  color-scheme: dark !important;
+
+  --glass-accent: #8b7bff;
+  --glass-accent-2: #4f7cff;
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-border-strong: rgba(255, 255, 255, 0.24);
+  --glass-fill: rgba(22, 18, 48, 0.46);
+  --glass-fill-strong: rgba(30, 24, 66, 0.62);
+  --glass-hover: rgba(255, 255, 255, 0.08);
+  --glass-blur: 18px;
+
+  --mat-sys-primary-dark: #a99cff !important;
+  --mat-sys-primary-base: #8b7bff !important;
+  --mat-sys-primary-base-active: #7c6cf5 !important;
+  --mat-sys-primary-base-hover: #9d90ff !important;
+  --mat-sys-primary-light: #9a8cff !important;
+  --mat-sys-primary-light-active: #8576f7 !important;
+  --mat-sys-primary-light-hover: #b0a6ff !important;
+  --mat-sys-primary: #8b7bff !important;
+  --mat-sys-on-primary: #ffffff !important;
+  --mat-sys-primary-container: rgba(139, 123, 255, 0.22) !important;
+  --mat-sys-on-primary-container: #e4e0ff !important;
+  --mat-sys-secondary: #7aa2ff !important;
+  --mat-sys-tertiary: #4f7cff !important;
+
+  --mat-sys-background: transparent !important;
+  --mat-sys-surface: rgba(18, 14, 40, 0.55) !important;
+  --mat-sys-surface-variant: var(--glass-fill) !important;
+  --mat-sys-surface-container-lowest: rgba(255, 255, 255, 0.03) !important;
+  --mat-sys-surface-container-low: rgba(24, 20, 52, 0.85) !important;
+  --mat-sys-surface-container: rgba(28, 23, 60, 0.92) !important;
+  --mat-sys-surface-container-high: rgba(34, 28, 72, 0.95) !important;
+  --mat-sys-surface-container-highest: rgba(42, 35, 86, 0.97) !important;
+  --mat-sys-on-surface: #eceaff !important;
+  --mat-sys-on-surface-variant: #b9b5d8 !important;
+  --mat-sys-on-background: #eceaff !important;
+  --mat-sys-outline: rgba(255, 255, 255, 0.28) !important;
+  --mat-sys-outline-variant: rgba(255, 255, 255, 0.14) !important;
+  --mat-sys-light: rgba(255, 255, 255, 0.10) !important;
+  --mat-sys-shadow: rgba(4, 2, 18, 0.55) !important;
+
+  --flat-border-shadow-1: rgba(255, 255, 255, 0.10) !important;
+  --flat-border-shadow-2: rgba(255, 255, 255, 0.14) !important;
+  --flat-border-shadow-3: rgba(255, 255, 255, 0.18) !important;
+  --flat-border-light-1: rgba(255, 255, 255, 0.06) !important;
+  --flat-border-light-2: rgba(255, 255, 255, 0.10) !important;
+  --flat-border-light-3: rgba(255, 255, 255, 0.14) !important;
+
+  --table-color: transparent !important;
+  --surface-raised: linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)) !important;
+  --nav-item-border: rgba(255, 255, 255, 0.12) !important;
+  --inline-hint-bg: rgba(79, 124, 255, 0.18) !important;
+  --inline-warning-bg: rgba(255, 70, 110, 0.18) !important;
+  --mat-tooltip-container-color: rgba(30, 24, 66, 0.95) !important;
+  --mat-tooltip-supporting-text-color: #f1efff !important;
+
+  --mint-bg: rgba(80, 220, 160, 0.14) !important;
+  --rose-bg: rgba(255, 90, 140, 0.14) !important;
+  --sky-bg: rgba(100, 160, 255, 0.14) !important;
+
+  --border-radius: 14px !important;
+  --side-glow: none !important;
+}
+
+/* ---------- 배경 ---------- */
+html, body {
+  background-color: #07051a !important;
+  background-image:
+    radial-gradient(120% 90% at 85% -10%, rgba(176, 72, 255, 0.55) 0%, rgba(176, 72, 255, 0) 55%),
+    radial-gradient(90% 80% at 110% 70%, rgba(40, 92, 255, 0.60) 0%, rgba(40, 92, 255, 0) 60%),
+    radial-gradient(80% 70% at -10% 110%, rgba(70, 60, 255, 0.45) 0%, rgba(70, 60, 255, 0) 60%),
+    linear-gradient(160deg, #0b0722 0%, #0a0b2e 55%, #08143f 100%) !important;
+  background-attachment: fixed !important;
+  color: var(--mat-sys-on-surface);
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", Roboto, sans-serif !important;
+}
+/* 한글 글꼴 (아이콘 글꼴은 제외) */
+body *:not(.mat-icon):not(.material-icons):not([class*="material-symbols"]):not([class*="mat-ligature-font"]) {
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", Roboto, sans-serif !important;
+}
+
+/* ---------- 유리 패널 ---------- */
+.primary-toolbar,
+.secondary-toolbar,
+.widget-frame,
+.dashboard-page .widget-frame,
+[class$="-table-layout"],
+[class*="-table-layout "],
+.mat-mdc-card,
+.mat-expansion-panel,
+.mat-mdc-dialog-surface,
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel,
+.mat-datepicker-content {
+  background: var(--glass-fill) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 10px 40px rgba(5, 3, 25, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border-radius: var(--border-radius) !important;
+}
+.mat-mdc-dialog-surface,
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel { background: var(--glass-fill-strong) !important; }
+
+/* 상단 메뉴 (좁은 화면): 떠 있는 유리 바 */
+.primary-toolbar {
+  margin: 10px 12px 0 !important;
+  width: auto !important;
+  padding: 6px 10px !important;
+}
+.secondary-toolbar { margin: 8px 12px 0 !important; }
+
+/* ---------- 넓은 화면: 왼쪽 유리 사이드바 레이아웃 ---------- */
+@media (min-width: 1000px) {
+  div.admin-layout {
+    display: grid !important;
+    grid-template-columns: 252px minmax(0, 1fr) !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    height: 100vh !important;
+    column-gap: 4px;
+  }
+  div.admin-layout > app-navigation { display: contents !important; }
+
+  /* 사이드바 */
+  div.admin-layout .primary-toolbar {
+    grid-column: 1; grid-row: 1 / span 2;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 16px 0 16px 16px !important;
+    padding: 46px 14px 14px !important;
+    border-radius: 26px !important;
+    background: linear-gradient(170deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03)) !important;
+    border: 1px solid var(--glass-border-strong) !important;
+    position: relative !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    white-space: normal !important;
+  }
+  /* 창 버튼 장식 (빨강/노랑/초록) */
+  div.admin-layout .primary-toolbar::before {
+    content: ""; position: absolute; top: 18px; left: 20px;
+    width: 52px; height: 12px;
+    background:
+      radial-gradient(circle at 6px 6px, #ff5f57 5px, transparent 5.5px),
+      radial-gradient(circle at 26px 6px, #febc2e 5px, transparent 5.5px),
+      radial-gradient(circle at 46px 6px, #28c840 5px, transparent 5.5px);
+  }
+  div.admin-layout .toolbar-brand {
+    padding: 4px 8px 16px !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    margin-bottom: 4px !important;
+    justify-content: flex-start !important;
+  }
+  div.admin-layout .toolbar-logo { width: 40px !important; height: 40px !important; }
+  div.admin-layout .toolbar-brand .brand-link::after {
+    content: "privacyIDEA";
+    margin-left: 12px; align-self: center;
+    font-weight: 800; font-size: 19px; letter-spacing: 0.04em;
+    color: #c4baff; text-shadow: 0 0 18px rgba(139, 123, 255, 0.55);
+  }
+  /* privacyIDEA 는 메뉴 폭(clientWidth)을 재서 넘치는 항목을 "더 보기"로 숨긴다.
+     세로 메뉴에서도 모든 항목이 보이도록 메뉴 상자 폭은 넉넉히 두고 항목 폭을 고정한다. */
+  div.admin-layout .main-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    width: 3000px !important;
+    min-width: 3000px !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  div.admin-layout .main-nav::before {
+    content: "MENU"; display: block;
+    padding: 8px 12px 6px;
+    font-size: 11px; letter-spacing: 0.16em; color: var(--mat-sys-on-surface-variant);
+  }
+  div.admin-layout .nav-item {
+    width: 200px !important; height: 46px !important; flex: 0 0 auto !important;
+    padding: 0 !important; box-sizing: border-box !important;
+    border: 1px solid transparent !important;
+  }
+  div.admin-layout .nav-item .nav-button {
+    width: 100% !important; height: 44px !important;
+    justify-content: flex-start !important;
+    gap: 14px !important; padding: 0 14px !important;
+    font-size: 15px !important;
+  }
+  div.admin-layout .toolbar-actions {
+    margin-top: auto !important;
+    padding-top: 12px !important;
+    border-top: 1px solid var(--glass-border) !important;
+    width: 100% !important;
+  }
+  div.admin-layout .utils-group {
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    height: auto !important;
+    padding: 8px !important;
+  }
+
+  /* 상단 헤더 (하위 메뉴) */
+  div.admin-layout .secondary-toolbar {
+    grid-column: 2; grid-row: 1;
+    width: auto !important;
+    margin: 16px 16px 0 12px !important;
+    border-radius: 18px !important;
+  }
+
+  /* 본문 */
+  div.admin-layout .admin-content {
+    grid-column: 2; grid-row: 2;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: auto !important;
+    padding: 4px 4px 0 0;
+  }
+}
+
+/* 메뉴 항목: 사이드바처럼 둥근 알약 + 활성 항목 강조 */
+.nav-item {
+  border-radius: 12px !important;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.nav-item:hover { background: var(--glass-hover) !important; }
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(139, 123, 255, 0.32), rgba(79, 124, 255, 0.22)) !important;
+  border: 1px solid var(--glass-border-strong) !important;
+  box-shadow: 0 0 0 1px rgba(139, 123, 255, 0.25), 0 6px 20px rgba(80, 60, 200, 0.35) !important;
+  clip-path: none !important;
+  border-radius: 12px !important;
+}
+.utils-group {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 12px !important;
+  clip-path: none !important;
+}
+
+/* 표 */
+th, td, .mat-mdc-header-cell, .mat-mdc-cell { background: transparent !important; }
+.mat-mdc-header-row, thead tr { background: rgba(255, 255, 255, 0.05) !important; }
+.mat-mdc-row:hover, tbody tr:hover { background: var(--glass-hover) !important; }
+.mat-mdc-table { background: transparent !important; }
+
+/* 버튼 */
+.action-button-primary,
+.login-btn,
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-raised-button.mat-primary {
+  background: linear-gradient(135deg, #8b7bff 0%, #5b7cff 100%) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 6px 22px rgba(91, 100, 255, 0.45) !important;
+}
+.action-button-primary *, .login-btn * { color: #fff !important; opacity: 1 !important; }
+.action-button-primary:hover, .login-btn:hover { filter: brightness(1.08); transform: none !important; }
+.action-button-secondary {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+.mat-button-toggle-checked { background: linear-gradient(135deg, #8b7bff, #5b7cff) !important; color: #fff !important; }
+
+/* 입력창 */
+.mdc-text-field--outlined:not(.mdc-text-field--disabled) {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+}
+.mdc-text-field--filled:not(.mdc-text-field--disabled) { background: rgba(255, 255, 255, 0.06) !important; }
+
+/* 로그인 화면: 가운데 유리 카드 */
+.login-scroll {
+  width: min(400px, calc(100vw - 32px)) !important;
+  max-width: 400px !important;
+  height: auto !important;
+  margin: 48px auto !important;
+  padding: 36px 40px 32px !important;
+  box-sizing: border-box !important;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03)) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  backdrop-filter: blur(22px) saturate(150%);
+  border: 1px solid var(--glass-border-strong) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 24px 80px rgba(5, 3, 25, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+.login-scroll .logo { width: 96px !important; height: 96px !important; }
+.login-scroll .logo-text { width: 220px !important; height: auto !important; margin-bottom: 8px; }
+.login-scroll .login-form, .login-scroll .passkey-form { width: 100% !important; }
+.passkey-form .mdc-fab, .passkey-form button {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: none !important;
+  color: var(--mat-sys-on-surface) !important;
+}
+
+/* 하단 흐림 효과(원본의 회색 그라데이션) 제거 */
+.dashboard-bottom-fade { display: none !important; }
+
+/* 스크롤바 */
+* { scrollbar-color: rgba(255, 255, 255, 0.22) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.18); border-radius: 10px; }
+
+/* 브라우저가 backdrop-filter 를 지원하지 않으면 불투명하게 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html { --glass-fill: rgba(22, 18, 48, 0.94); --glass-fill-strong: rgba(30, 24, 66, 0.98); }
+}
