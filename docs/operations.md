@@ -105,9 +105,27 @@ CA 가 같으므로 FreeRADIUS 와 PC 쪽은 바꿀 필요가 없습니다.
 
 | 증상 | 원인 / 조치 |
 |---|---|
-| 브라우저 403 | 접속 PC 대역이 `PI_WEB_ALLOWED_NETS` 에 없음 |
+| 브라우저 403 | 접속 PC 대역이 `PI_WEB_ALLOWED_NETS` 에 없음. Nginx 로그의 client 가 `172.31.250.1` 이면 시놀로지 Docker 의 출발지 변환 → `docs/synology-freeradius.md` 마지막 절 |
 | 브라우저 429 | 로그인 시도 과다 (1분에 10회) → 잠시 후 재시도 |
 | RADIUS 403 (`request failed: 403`) | RADIUS 서버 IP 가 `PI_RADIUS_SOURCES` 에 없음 |
+| `db` 로그에 `/run/secrets/db_root_password: Permission denied` | 시놀로지 공유 폴더 ACL 때문에 컨테이너 UID 가 시크릿을 못 읽음 → `sudo ./scripts/setup.sh secrets` (ACL 제거 + 권한 재설정 + 읽기 확인) 후 `sudo docker compose up -d` |
 | `privacyidea` 컨테이너 재시작 반복 | `docker compose logs privacyidea` - 시크릿 권한(`sudo ./scripts/setup.sh secrets`) 또는 DB 연결 |
 | 사용자 IP 가 방화벽 IP 로만 보임 | Palo Alto 가 `PaloAlto-Client-Source-IP` 를 보내지 않는 구성 → IP 차단(`PI_CA_IP_ENFORCE`)은 끈 상태 유지 |
 | 디버그가 필요 | `.env` 에서 `PI_LOGLEVEL=DEBUG` → `docker compose up -d`, **확인 후 즉시 INFO 로 복귀** (요청 값이 로그에 남을 수 있음) |
+
+## 웹 화면 (한국어 / 디자인)
+
+- 브라우저 언어가 한국어면 한국어 화면이 나옵니다. 언어 메뉴에서 바꿀 수도 있습니다.
+  번역은 `privacyidea/webui-ko/ko.json` 에 있으며, 이미지를 빌드할 때 한국어 화면 묶음(`browser/ko`)이 만들어집니다.
+  privacyIDEA 버전을 올리면 빌드 로그의 `[ko] 번역 대상 N 곳 중 M 곳 번역` 비율을 확인하세요.
+  80% 아래로 떨어지면 빌드가 실패합니다.
+- 디자인은 `.env` 의 `PI_WEBUI_THEME` 로 고릅니다.
+  - `profile` (기본): 미색 배경, 흰 카드, 검정 알약 버튼. 사이드바 위쪽이 프로필 카드 모양 (topmate 스타일)
+  - `top`: 사이드바 없이 상단 메뉴 + 가운데 정렬 본문, 보라 포인트
+  - `rail`: 좁은 보라 아이콘 레일 사이드바, 연보라 배경
+  - `glass`: 보라/파랑 그라데이션 배경, 유리 질감 왼쪽 사이드바, 반투명 카드
+  - `none`: privacyIDEA 원본 디자인
+  - 바꾼 뒤에는 `docker compose build privacyidea && docker compose up -d` 를 실행하세요.
+  - 스타일은 `privacyidea/webui-ko/themes/` 에 있습니다.
+    `base.css`(공통 간격/카드) + `sidebar.css`(사이드바 배치) + 시안별 색상 파일을 합쳐 씁니다.
+  - 화면 폭이 1000px 보다 좁으면 사이드바 대신 상단 메뉴로 바뀝니다.

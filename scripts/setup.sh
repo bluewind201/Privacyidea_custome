@@ -240,9 +240,51 @@ EOF
   fi
 }
 
+strip_synology_acl() {
+  # 시놀로지 공유 폴더(/volume1/...)는 Windows 식 ACL 이 상속되어, chown/chmod 를 해도
+  # 컨테이너 UID(999, 10001, 101)가 파일을 읽지 못한다 ("Permission denied").
+  # secrets/ 와 certs/ 에서만 ACL 을 제거해 일반 리눅스 권한으로 되돌린다.
+  command -v synoacltool >/dev/null 2>&1 || return 0
+  is_root || { c_warn "시놀로지 ACL 제거는 root 권한이 필요합니다: sudo ./scripts/setup.sh secrets"; return 0; }
+  local p
+  for p in "$SECRETS" "$CERTS"; do
+    [ -e "$p" ] || continue
+    synoacltool -del "$p" >/dev/null 2>&1 || true
+    find "$p" -mindepth 1 -exec synoacltool -del {} \; >/dev/null 2>&1 || true
+  done
+  c_ok "시놀로지 ACL 제거: secrets/, certs/"
+}
+
+# 각 컨테이너 UID 로 실제로 파일을 읽어 본다. (권한 문제를 기동 전에 잡기 위함)
+check_secret_access() {
+  local img; img="$(env_get PI_DB_IMAGE 2>/dev/null || true)"; img="${img:-mariadb:11.4}"
+  docker image inspect "$img" >/dev/null 2>&1 || docker pull -q "$img" >/dev/null 2>&1 || return 0
+  local bad=0 spec uid file
+  for spec in \
+      "$DB_UID:$SECRETS/db_root_password" "$DB_UID:$SECRETS/db_password" \
+      "$PI_UID:$SECRETS/db_password" "$PI_UID:$SECRETS/enckey" "$PI_UID:$SECRETS/pi_pepper" \
+      "$PI_UID:$SECRETS/pi_secret_key" "$PI_UID:$SECRETS/audit_key_private" \
+      "$NGINX_UID:$CERTS/server.key" "$RADIUS_UID:$SECRETS/radius_client_secret"; do
+    uid="${spec%%:*}"; file="${spec#*:}"
+    [ -f "$file" ] || continue
+    if ! docker run --rm --network none --user "$uid:$uid" -v "$file:/check:ro" \
+           --entrypoint cat "$img" /check >/dev/null 2>&1; then
+      c_err "UID $uid 가 ${file#"$ROOT"/} 를 읽을 수 없습니다."
+      bad=1
+    fi
+  done
+  if [ "$bad" -ne 0 ]; then
+    c_err "sudo ./scripts/setup.sh secrets 로 다시 시도하고, 계속되면 아래 결과를 확인하세요:"
+    c_err "  sudo ls -ln secrets certs ; sudo synoacltool -get secrets/db_root_password"
+    return 1
+  fi
+  c_ok "컨테이너별 시크릿 읽기 확인"
+}
+
 fix_permissions() {
   # 각 컨테이너는 서로 다른 비루트 UID 로 실행되므로 파일 소유자를 맞춘다.
   # 시크릿 디렉터리는 0700 이라 호스트의 다른 사용자는 접근할 수 없다.
+  strip_synology_acl
   chmod 0700 "$SECRETS"
   chmod 0644 "$CERTS/ca.crt" "$CERTS/server.crt"
   if is_root; then
@@ -346,6 +388,7 @@ main() {
       generate_secrets
       generate_certs
       fix_permissions
+      check_secret_access || die "시크릿 권한 문제로 설치를 중단합니다."
       start_stack
       bootstrap
       print_info
@@ -355,6 +398,7 @@ main() {
       generate_secrets
       generate_certs
       fix_permissions
+      check_secret_access || exit 1
       ;;
     bootstrap)
       # .env 변경 사항을 컨테이너 환경변수에 반영한 뒤 적용

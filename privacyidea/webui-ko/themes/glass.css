@@ -1,0 +1,95 @@
+/*
+ * 시안 C "Glass" - 보라/파랑 그라데이션 + 반투명 유리 사이드바 (code.xr Glassy Sidebar 참고)
+ * 구성: base.css + sidebar.css + glass.css
+ */
+html.light, html.dark, html.system, html {
+  color-scheme: dark !important;
+  --t-bg: radial-gradient(120% 90% at 85% -10%, rgba(176,72,255,.55) 0%, rgba(176,72,255,0) 55%),
+          radial-gradient(90% 80% at 110% 70%, rgba(40,92,255,.60) 0%, rgba(40,92,255,0) 60%),
+          radial-gradient(80% 70% at -10% 110%, rgba(70,60,255,.45) 0%, rgba(70,60,255,0) 60%),
+          linear-gradient(160deg, #0b0722 0%, #0a0b2e 55%, #08143f 100%) #07051a;
+  --t-panel: rgba(22, 18, 48, 0.46);
+  --t-popup: rgba(30, 24, 66, 0.96);
+  --t-card: linear-gradient(160deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+  --t-line: rgba(255, 255, 255, 0.14);
+  --t-shadow: 0 10px 40px rgba(5,3,25,.45), inset 0 1px 0 rgba(255,255,255,.08);
+  --t-card-shadow: 0 24px 80px rgba(5,3,25,.6), inset 0 1px 0 rgba(255,255,255,.12);
+  --t-blur: blur(18px) saturate(150%);
+  --t-soft: rgba(255, 255, 255, 0.06);
+  --t-hover: rgba(255, 255, 255, 0.08);
+  --t-thead: rgba(255, 255, 255, 0.05);
+  --t-input: rgba(255, 255, 255, 0.05);
+  --t-active-bg: linear-gradient(135deg, rgba(139,123,255,.34), rgba(79,124,255,.24));
+  --t-active-fg: #ffffff;
+  --t-active-line: rgba(255, 255, 255, 0.24);
+  --t-active-shadow: 0 0 0 1px rgba(139,123,255,.25), 0 6px 20px rgba(80,60,200,.35);
+  --t-btn: linear-gradient(135deg, #8b7bff 0%, #5b7cff 100%);
+  --t-btn-fg: #ffffff;
+  --t-btn-line: rgba(255, 255, 255, 0.22);
+  --t-btn-shadow: 0 6px 22px rgba(91,100,255,.45);
+  --t-brand: #c4baff;
+  --t-scroll: rgba(255, 255, 255, 0.2);
+  --sb-bg: linear-gradient(170deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+  --sb-line: rgba(255, 255, 255, 0.22);
+  --sb-pad: 52px 16px 16px;
+
+  --mat-sys-primary-dark: #a99cff !important;
+  --mat-sys-primary-base: #8b7bff !important;
+  --mat-sys-primary-base-active: #7c6cf5 !important;
+  --mat-sys-primary-base-hover: #9d90ff !important;
+  --mat-sys-primary-light: #9a8cff !important;
+  --mat-sys-primary-light-active: #8576f7 !important;
+  --mat-sys-primary-light-hover: #b0a6ff !important;
+  --mat-sys-primary: #8b7bff !important;
+  --mat-sys-on-primary: #ffffff !important;
+  --mat-sys-primary-container: rgba(139, 123, 255, 0.22) !important;
+  --mat-sys-on-primary-container: #e4e0ff !important;
+  --mat-sys-secondary: #7aa2ff !important;
+  --mat-sys-tertiary: #4f7cff !important;
+  --mat-sys-background: transparent !important;
+  --mat-sys-surface: rgba(18, 14, 40, 0.55) !important;
+  --mat-sys-surface-variant: rgba(22, 18, 48, 0.46) !important;
+  --mat-sys-surface-container-lowest: rgba(255, 255, 255, 0.03) !important;
+  --mat-sys-surface-container-low: rgba(24, 20, 52, 0.85) !important;
+  --mat-sys-surface-container: rgba(28, 23, 60, 0.92) !important;
+  --mat-sys-surface-container-high: rgba(34, 28, 72, 0.95) !important;
+  --mat-sys-surface-container-highest: rgba(42, 35, 86, 0.97) !important;
+  --mat-sys-on-surface: #eceaff !important;
+  --mat-sys-on-surface-variant: #b9b5d8 !important;
+  --mat-sys-on-background: #eceaff !important;
+  --mat-sys-outline: rgba(255, 255, 255, 0.28) !important;
+  --mat-sys-outline-variant: rgba(255, 255, 255, 0.14) !important;
+  --mat-sys-light: rgba(255, 255, 255, 0.10) !important;
+  --mat-sys-shadow: rgba(4, 2, 18, 0.55) !important;
+  --flat-border-shadow-1: rgba(255, 255, 255, 0.10) !important;
+  --flat-border-shadow-2: rgba(255, 255, 255, 0.14) !important;
+  --flat-border-shadow-3: rgba(255, 255, 255, 0.18) !important;
+  --flat-border-light-1: rgba(255, 255, 255, 0.06) !important;
+  --flat-border-light-2: rgba(255, 255, 255, 0.10) !important;
+  --flat-border-light-3: rgba(255, 255, 255, 0.14) !important;
+  --table-color: transparent !important;
+  --surface-raised: linear-gradient(145deg, rgba(255,255,255,.09), rgba(255,255,255,.025)) !important;
+  --nav-item-border: rgba(255, 255, 255, 0.12) !important;
+  --inline-hint-bg: rgba(79, 124, 255, 0.18) !important;
+  --inline-warning-bg: rgba(255, 70, 110, 0.18) !important;
+  --mat-tooltip-container-color: rgba(30, 24, 66, 0.95) !important;
+  --mat-tooltip-supporting-text-color: #f1efff !important;
+  --mint-bg: rgba(80, 220, 160, 0.14) !important;
+  --rose-bg: rgba(255, 90, 140, 0.14) !important;
+  --sky-bg: rgba(100, 160, 255, 0.14) !important;
+}
+@media (min-width: 1000px) {
+  /* 창 버튼 장식 (빨강/노랑/초록) */
+  div.admin-layout .primary-toolbar::before {
+    content: ""; position: absolute; top: 20px; left: 24px;
+    width: 52px; height: 12px;
+    background:
+      radial-gradient(circle at 6px 6px, #ff5f57 5px, transparent 5.5px),
+      radial-gradient(circle at 26px 6px, #febc2e 5px, transparent 5.5px),
+      radial-gradient(circle at 46px 6px, #28c840 5px, transparent 5.5px);
+  }
+  div.admin-layout .toolbar-brand .brand-link::after { text-shadow: 0 0 18px rgba(139, 123, 255, 0.55); }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html { --t-panel: rgba(22, 18, 48, 0.94) !important; --t-card: rgba(30, 24, 66, 0.98) !important; }
+}

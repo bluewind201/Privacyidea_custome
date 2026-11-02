@@ -61,6 +61,7 @@ services:
       context: ./privacyidea
       args:
         PI_VERSION: ${PI_VERSION:-3.14}
+        PI_WEBUI_THEME: ${PI_WEBUI_THEME:-profile}
     image: privacyidea-hardened:${PI_VERSION:-3.14}
     depends_on:
       db:
