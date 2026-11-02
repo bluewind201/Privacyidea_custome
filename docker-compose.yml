@@ -62,7 +62,8 @@ services:
       args:
         PI_VERSION: ${PI_VERSION:-3.14}
         PI_WEBUI_THEME: ${PI_WEBUI_THEME:-profile}
-    image: privacyidea-hardened:${PI_VERSION:-3.14}
+    # PI_IMAGE_PREFIX 가 있으면 Docker Hub 의 미리 빌드된 이미지를 받아 쓴다 (docker compose pull)
+    image: ${PI_IMAGE_PREFIX:-}privacyidea-hardened:${PI_VERSION:-3.14}
     depends_on:
       db:
         condition: service_healthy
@@ -189,7 +190,7 @@ services:
     profiles: [radius]
     build:
       context: ./radius
-    image: privacyidea-radius:3.2
+    image: ${PI_IMAGE_PREFIX:-}privacyidea-radius:3.2
     depends_on:
       nginx:
         condition: service_healthy
