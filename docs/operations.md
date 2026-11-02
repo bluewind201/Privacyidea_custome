@@ -120,10 +120,10 @@ CA 가 같으므로 FreeRADIUS 와 PC 쪽은 바꿀 필요가 없습니다.
   privacyIDEA 버전을 올리면 빌드 로그의 `[ko] 번역 대상 N 곳 중 M 곳 번역` 비율을 확인하세요.
   80% 아래로 떨어지면 빌드가 실패합니다.
 - 디자인은 `.env` 의 `PI_WEBUI_THEME` 로 고릅니다.
-  - `profile`: 미색 배경, 흰 카드, 검정 알약 버튼. 사이드바 위쪽이 프로필 카드 모양 (topmate 스타일)
+  - `profile` (기본): 미색 배경, 흰 카드, 검정 알약 버튼. 사이드바 위쪽이 프로필 카드 모양 (topmate 스타일)
   - `top`: 사이드바 없이 상단 메뉴 + 가운데 정렬 본문, 보라 포인트
   - `rail`: 좁은 보라 아이콘 레일 사이드바, 연보라 배경
-  - `glass` (기본): 보라/파랑 그라데이션 배경, 유리 질감 왼쪽 사이드바, 반투명 카드
+  - `glass`: 보라/파랑 그라데이션 배경, 유리 질감 왼쪽 사이드바, 반투명 카드
   - `none`: privacyIDEA 원본 디자인
   - 바꾼 뒤에는 `docker compose build privacyidea && docker compose up -d` 를 실행하세요.
   - 스타일은 `privacyidea/webui-ko/themes/` 에 있습니다.

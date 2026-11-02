@@ -37,7 +37,7 @@ RUN echo "privacyidea==${PI_VERSION} --hash=sha256:${PI_WHEEL_SHA256}" > pi-whee
 
 # 4) WebUI 한국어 번들(browser/ko) 생성 + 디자인 테마 - webui-ko/build_ko_locale.py 참고
 #    PI_WEBUI_THEME: profile | top | rail | glass | none (원본 디자인)
-ARG PI_WEBUI_THEME=glass
+ARG PI_WEBUI_THEME=profile
 COPY webui-ko/ ./webui-ko/
 RUN set -e; \
     t=webui-ko/themes; \
