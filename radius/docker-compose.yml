@@ -11,7 +11,7 @@ name: pi-radius
 services:
   radius:
     build: .
-    image: privacyidea-radius:3.2
+    image: ${PI_IMAGE_PREFIX:-}privacyidea-radius:3.2
     restart: unless-stopped
     init: true
     read_only: true

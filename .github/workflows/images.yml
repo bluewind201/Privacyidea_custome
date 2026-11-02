@@ -1,0 +1,90 @@
+# privacyIDEA / FreeRADIUS 이미지를 빌드해 Docker Hub 에 올린다.
+#  필요한 저장소 Secrets (Settings > Secrets and variables > Actions):
+#    DOCKERHUB_USERNAME : Docker Hub 계정명
+#    DOCKERHUB_TOKEN    : Docker Hub Access Token (Read & Write)
+#  결과: <계정명>/privacyidea-hardened:<PI_VERSION>, :latest
+#        <계정명>/privacyidea-radius:3.2, :latest
+#  NAS 에서는 .env 에 PI_IMAGE_PREFIX=<계정명>/ 를 넣고 docker compose pull && docker compose up -d
+name: images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "privacyidea/**"
+      - "radius/Dockerfile"
+      - "radius/entrypoint.sh"
+      - "radius/raddb/**"
+      - ".github/workflows/images.yml"
+  workflow_dispatch:
+    inputs:
+      theme:
+        description: "WebUI 디자인 (profile | top | rail | glass | none)"
+        default: "profile"
+      platforms:
+        description: "CPU 종류 (ARM 시놀로지는 linux/arm64 추가)"
+        default: "linux/amd64"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: images
+  cancel-in-progress: false
+
+env:
+  PI_VERSION: "3.14"
+  RADIUS_TAG: "3.2"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check secrets
+        env:
+          USER: ${{ secrets.DOCKERHUB_USERNAME }}
+          TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -z "$USER" ] || [ -z "$TOKEN" ]; then
+            echo "::error::DOCKERHUB_USERNAME / DOCKERHUB_TOKEN 저장소 Secret 을 먼저 등록하세요."
+            exit 1
+          fi
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: privacyIDEA
+        uses: docker/build-push-action@v6
+        with:
+          context: ./privacyidea
+          platforms: ${{ inputs.platforms || 'linux/amd64' }}
+          pull: true
+          push: true
+          build-args: |
+            PI_VERSION=${{ env.PI_VERSION }}
+            PI_WEBUI_THEME=${{ inputs.theme || 'profile' }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/privacyidea-hardened:${{ env.PI_VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/privacyidea-hardened:latest
+          cache-from: type=gha,scope=privacyidea
+          cache-to: type=gha,mode=max,scope=privacyidea
+
+      - name: FreeRADIUS
+        uses: docker/build-push-action@v6
+        with:
+          context: ./radius
+          platforms: ${{ inputs.platforms || 'linux/amd64' }}
+          pull: true
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/privacyidea-radius:${{ env.RADIUS_TAG }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/privacyidea-radius:latest
+          cache-from: type=gha,scope=radius
+          cache-to: type=gha,mode=max,scope=radius

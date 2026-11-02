@@ -80,6 +80,21 @@ docker compose up -d          # 시작 시 DB 스키마 자동 업그레이드 (
 ./scripts/setup.sh bootstrap
 ```
 
+### Docker Hub 이미지로 업데이트 (NAS 에서 빌드하지 않기)
+
+main 브랜치에 `privacyidea/` 나 `radius/` 변경이 들어가면 GitHub Actions(`.github/workflows/images.yml`)가
+이미지를 빌드해 Docker Hub 에 올립니다. 처음 한 번 GitHub 저장소의
+Settings > Secrets and variables > Actions 에 `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`
+(Docker Hub > Account settings > Personal access tokens, Read & Write)을 등록하세요.
+Actions 탭의 images > Run workflow 로 디자인(theme)이나 CPU 종류(ARM 시놀로지는 `linux/arm64`)를 골라 직접 실행할 수도 있습니다.
+
+NAS 의 `.env` 에 `PI_IMAGE_PREFIX=<Docker Hub 계정명>/` 을 넣은 뒤:
+
+```bash
+sudo docker compose pull
+sudo docker compose up -d --no-build
+```
+
 privacyIDEA 버전을 올릴 때는 `privacyidea/Dockerfile` 의 `PI_VERSION` 과 `PI_WHEEL_SHA256`
 (https://pypi.org/project/privacyidea/#files 의 wheel SHA256)을 함께 바꾸고, 먼저 백업하세요.
 

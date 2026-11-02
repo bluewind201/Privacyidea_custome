@@ -326,8 +326,14 @@ wait_healthy() {
 
 start_stack() {
   c_info "이미지 빌드 및 컨테이너 기동 (처음에는 수 분 걸립니다)"
-  $SKIP_BUILD || compose build
-  compose up -d
+  if [ -n "$(env_get PI_IMAGE_PREFIX)" ]; then
+    c_info "미리 빌드된 이미지 받기: $(env_get PI_IMAGE_PREFIX)"
+    compose pull
+    compose up -d --no-build
+  else
+    $SKIP_BUILD || compose build
+    compose up -d
+  fi
   wait_healthy privacyidea
   wait_healthy nginx
   c_ok "privacyIDEA / Nginx 정상"
