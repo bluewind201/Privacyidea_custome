@@ -222,13 +222,25 @@ generate_certs() {
   mkdir -p "$CERTS" "$CERTS/ldap"
   umask 077
 
+  # 시스템 openssl.cnf 를 쓰지 않는다: OpenSSL 1.1.1(시놀로지 DSM)은 -addext 를 openssl.cnf 의
+  # v3_ca 확장에 덧붙여 basicConstraints 가 두 번 들어간 CA 를 만들고, 그 CA 로는 검증이 안 된다
+  local cnf; cnf="$(mktemp)"
+  cat > "$cnf" <<'EOF'
+[req]
+distinguished_name = dn
+x509_extensions = v3_ca
+[dn]
+[v3_ca]
+basicConstraints = critical,CA:TRUE,pathlen:0
+keyUsage = critical,keyCertSign,cRLSign
+subjectKeyIdentifier = hash
+EOF
+
   if [ ! -s "$CERTS/ca.crt" ]; then
     # 사설 CA: 키는 secrets/ 에만 보관하고 어떤 컨테이너에도 마운트하지 않는다
-    openssl req -x509 -new -nodes -newkey ec -pkeyopt ec_paramgen_curve:P-256 \
+    openssl req -x509 -new -nodes -config "$cnf" -newkey ec -pkeyopt ec_paramgen_curve:P-256 \
       -keyout "$SECRETS/ca.key" -out "$CERTS/ca.crt" -days 3650 -sha256 \
-      -subj "/O=privacyIDEA Docker/CN=privacyIDEA Local CA" \
-      -addext "basicConstraints=critical,CA:TRUE,pathlen:0" \
-      -addext "keyUsage=critical,keyCertSign,cRLSign" 2>/dev/null
+      -subj "/O=privacyIDEA Docker/CN=privacyIDEA Local CA" 2>/dev/null
     c_ok "사설 CA 생성: certs/ca.crt (PC/방화벽에 신뢰 CA 로 등록)"
   fi
 
@@ -243,13 +255,20 @@ keyUsage=critical,digitalSignature,keyEncipherment
 extendedKeyUsage=serverAuth
 subjectAltName=${san}
 EOF
-    openssl req -new -nodes -newkey ec -pkeyopt ec_paramgen_curve:P-256 \
+    openssl req -new -nodes -config "$cnf" -newkey ec -pkeyopt ec_paramgen_curve:P-256 \
       -keyout "$CERTS/server.key" -out "$CERTS/server.csr" -subj "/CN=${host}" 2>/dev/null
     openssl x509 -req -in "$CERTS/server.csr" -CA "$CERTS/ca.crt" -CAkey "$SECRETS/ca.key" \
       -CAcreateserial -CAserial "$SECRETS/ca.srl" -out "$CERTS/server.crt" -days 825 -sha256 \
       -extfile "$ext" 2>/dev/null
     rm -f "$ext" "$CERTS/server.csr"
     c_ok "서버 인증서 생성: certs/server.crt (SAN: ${san})"
+  fi
+  rm -f "$cnf"
+
+  # FreeRADIUS 는 certs/ca.crt 로 Nginx 인증서를 검증한다 - 실패하면 모든 RADIUS 인증이 거부된다
+  if ! openssl verify -CAfile "$CERTS/ca.crt" "$CERTS/server.crt" >/dev/null 2>&1; then
+    c_warn "certs/server.crt 가 certs/ca.crt 로 검증되지 않습니다 (RADIUS 인증이 모두 거부됨)."
+    c_warn "직접 넣은 인증서가 아니면 certs/ca.crt, certs/server.crt, certs/server.key 를 옮긴 뒤 다시 실행하세요."
   fi
 }
 
